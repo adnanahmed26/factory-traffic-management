@@ -1,0 +1,1276 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Factory Traffic Management</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'traffic/dashboard.css' %}"
+    >
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-mark">
+                FT
+            </div>
+
+            <div>
+                <div class="brand-title">
+                    Factory Traffic
+                </div>
+
+                <div class="brand-subtitle">
+                    Control System
+                </div>
+            </div>
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <button
+                type="button"
+                class="nav-item active"
+                data-section="overview"
+            >
+                <span class="nav-icon">◫</span>
+                <span>Overview</span>
+            </button>
+
+            <button
+                type="button"
+                class="nav-item"
+                data-section="control"
+            >
+                <span class="nav-icon">⌘</span>
+                <span>Manual Control</span>
+            </button>
+
+            <button
+                type="button"
+                class="nav-item"
+                data-section="events"
+            >
+                <span class="nav-icon">◎</span>
+                <span>Sensor Simulator</span>
+            </button>
+
+            <button
+                type="button"
+                class="nav-item"
+                data-section="history"
+            >
+                <span class="nav-icon">≡</span>
+                <span>Audit History</span>
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-footer">
+
+            <div class="system-indicator">
+
+                <span
+                    id="sidebarStatusDot"
+                    class="status-dot unknown"
+                ></span>
+
+                <div>
+                    <div class="small-label">
+                        Controller
+                    </div>
+
+                    <div
+                        id="sidebarControllerStatus"
+                        class="sidebar-status"
+                    >
+                        UNKNOWN
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <main class="main-content">
+
+        <!-- HEADER -->
+
+        <header class="topbar">
+
+            <div>
+                <p class="eyebrow">
+                    OPERATIONS DASHBOARD
+                </p>
+
+                <h1>
+                    Factory Traffic Management
+                </h1>
+            </div>
+
+
+            <div class="topbar-actions">
+
+                <div class="junction-picker">
+
+                    <label for="junctionSelect">
+                        Junction
+                    </label>
+
+                    <select id="junctionSelect">
+                        <option value="">
+                            Loading...
+                        </option>
+                    </select>
+
+                </div>
+
+
+                <button
+                    id="refreshButton"
+                    class="button secondary"
+                    type="button"
+                >
+                    Refresh
+                </button>
+
+
+                <button
+                    id="createJunctionButton"
+                    class="button primary"
+                    type="button"
+                >
+                    + Junction
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- MESSAGE -->
+
+        <div
+            id="messageBar"
+            class="message-bar hidden"
+        ></div>
+
+
+        <!-- =================================================
+             OVERVIEW
+        ================================================== -->
+
+        <section
+            id="overviewSection"
+            class="dashboard-section active"
+        >
+
+            <!-- SUMMARY -->
+
+            <div class="summary-grid">
+
+                <article class="summary-card">
+
+                    <span class="summary-label">
+                        Operating Mode
+                    </span>
+
+                    <div class="summary-value-row">
+
+                        <span
+                            id="modeValue"
+                            class="summary-value"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="modeBadge"
+                            class="badge neutral"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+                </article>
+
+
+                <article class="summary-card">
+
+                    <span class="summary-label">
+                        Active Phase
+                    </span>
+
+                    <span
+                        id="phaseValue"
+                        class="summary-value"
+                    >
+                        —
+                    </span>
+
+                    <span
+                        id="transitionText"
+                        class="summary-detail"
+                    >
+                        Waiting for data
+                    </span>
+
+                </article>
+
+
+                <article class="summary-card">
+
+                    <span class="summary-label">
+                        Controller
+                    </span>
+
+                    <div class="summary-value-row">
+
+                        <span
+                            id="controllerValue"
+                            class="summary-value"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="controllerDot"
+                            class="status-dot unknown"
+                        ></span>
+
+                    </div>
+
+                </article>
+
+
+                <article class="summary-card">
+
+                    <span class="summary-label">
+                        State Version
+                    </span>
+
+                    <span
+                        id="stateVersionValue"
+                        class="summary-value"
+                    >
+                        —
+                    </span>
+
+                    <span class="summary-detail">
+                        Persistent junction state
+                    </span>
+
+                </article>
+
+            </div>
+
+
+            <!-- SIGNAL + QUEUE AREA -->
+
+            <div class="content-grid">
+
+                <!-- =========================================
+                     SIGNAL PANEL
+                ========================================== -->
+
+                <section class="panel signal-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <span class="panel-kicker">
+                                PHYSICAL STATE
+                            </span>
+
+                            <h2>
+                                Junction Signals
+                            </h2>
+                        </div>
+
+
+                        <div class="legend">
+
+                            <span>
+                                <i class="legend-dot red"></i>
+                                Red
+                            </span>
+
+                            <span>
+                                <i class="legend-dot yellow"></i>
+                                Yellow
+                            </span>
+
+                            <span>
+                                <i class="legend-dot green"></i>
+                                Green
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="intersection">
+
+                        <div class="road vertical-road"></div>
+                        <div class="road horizontal-road"></div>
+
+
+                        <!-- CENTER STATUS -->
+
+                        <div class="intersection-center">
+
+                            <span class="intersection-label">
+                                LOGICAL PHASE
+                            </span>
+
+                            <strong id="intersectionPhase">
+                                ALL RED
+                            </strong>
+
+
+                            <div
+                                id="intersectionTransition"
+                                class="intersection-transition hidden"
+                            >
+
+                                <span id="intersectionTransitionStage">
+                                    —
+                                </span>
+
+                                <span class="transition-arrow">
+                                    →
+                                </span>
+
+                                <span id="intersectionTargetPhase">
+                                    —
+                                </span>
+
+                            </div>
+
+
+                            <div
+                                id="intersectionControllerWarning"
+                                class="intersection-warning hidden"
+                            >
+                                Controller unavailable —
+                                physical state frozen
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================
+                             NORTH
+                        ================================== -->
+
+                        <div
+                            class="signal-position north"
+                            data-direction="NORTH"
+                        >
+
+                            <span class="direction-label">
+                                NORTH
+                            </span>
+
+
+                            <div class="traffic-light">
+
+                                <span
+                                    class="lamp red"
+                                    data-color="RED"
+                                ></span>
+
+                                <span
+                                    class="lamp yellow"
+                                    data-color="YELLOW"
+                                ></span>
+
+                                <span
+                                    class="lamp green"
+                                    data-color="GREEN"
+                                ></span>
+
+                            </div>
+
+
+                            <div class="signal-meta">
+
+                                <span>
+                                    Actual:
+                                    <strong data-actual="NORTH">
+                                        —
+                                    </strong>
+                                </span>
+
+                                <span>
+                                    Desired:
+                                    <strong data-desired="NORTH">
+                                        —
+                                    </strong>
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================
+                             SOUTH
+                        ================================== -->
+
+                        <div
+                            class="signal-position south"
+                            data-direction="SOUTH"
+                        >
+
+                            <span class="direction-label">
+                                SOUTH
+                            </span>
+
+
+                            <div class="traffic-light">
+
+                                <span
+                                    class="lamp red"
+                                    data-color="RED"
+                                ></span>
+
+                                <span
+                                    class="lamp yellow"
+                                    data-color="YELLOW"
+                                ></span>
+
+                                <span
+                                    class="lamp green"
+                                    data-color="GREEN"
+                                ></span>
+
+                            </div>
+
+
+                            <div class="signal-meta">
+
+                                <span>
+                                    Actual:
+                                    <strong data-actual="SOUTH">
+                                        —
+                                    </strong>
+                                </span>
+
+                                <span>
+                                    Desired:
+                                    <strong data-desired="SOUTH">
+                                        —
+                                    </strong>
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================
+                             EAST
+                        ================================== -->
+
+                        <div
+                            class="signal-position east"
+                            data-direction="EAST"
+                        >
+
+                            <span class="direction-label">
+                                EAST
+                            </span>
+
+
+                            <div class="traffic-light horizontal-light">
+
+                                <span
+                                    class="lamp red"
+                                    data-color="RED"
+                                ></span>
+
+                                <span
+                                    class="lamp yellow"
+                                    data-color="YELLOW"
+                                ></span>
+
+                                <span
+                                    class="lamp green"
+                                    data-color="GREEN"
+                                ></span>
+
+                            </div>
+
+
+                            <div class="signal-meta">
+
+                                <span>
+                                    Actual:
+                                    <strong data-actual="EAST">
+                                        —
+                                    </strong>
+                                </span>
+
+                                <span>
+                                    Desired:
+                                    <strong data-desired="EAST">
+                                        —
+                                    </strong>
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================
+                             WEST
+                        ================================== -->
+
+                        <div
+                            class="signal-position west"
+                            data-direction="WEST"
+                        >
+
+                            <span class="direction-label">
+                                WEST
+                            </span>
+
+
+                            <div class="traffic-light horizontal-light">
+
+                                <span
+                                    class="lamp red"
+                                    data-color="RED"
+                                ></span>
+
+                                <span
+                                    class="lamp yellow"
+                                    data-color="YELLOW"
+                                ></span>
+
+                                <span
+                                    class="lamp green"
+                                    data-color="GREEN"
+                                ></span>
+
+                            </div>
+
+
+                            <div class="signal-meta">
+
+                                <span>
+                                    Actual:
+                                    <strong data-actual="WEST">
+                                        —
+                                    </strong>
+                                </span>
+
+                                <span>
+                                    Desired:
+                                    <strong data-desired="WEST">
+                                        —
+                                    </strong>
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =========================================
+                     QUEUE PANEL
+                ========================================== -->
+
+                <section class="panel queue-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <span class="panel-kicker">
+                                LIVE TRAFFIC
+                            </span>
+
+                            <h2>
+                                Vehicle Queues
+                            </h2>
+                        </div>
+
+                    </div>
+
+
+                    <div class="queue-list">
+
+                        <div class="queue-row">
+
+                            <div>
+                                <strong>NORTH</strong>
+                                <span>North approach</span>
+                            </div>
+
+                            <div
+                                id="queueNorth"
+                                class="queue-count"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+
+                        <div class="queue-row">
+
+                            <div>
+                                <strong>SOUTH</strong>
+                                <span>South approach</span>
+                            </div>
+
+                            <div
+                                id="queueSouth"
+                                class="queue-count"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+
+                        <div class="queue-row">
+
+                            <div>
+                                <strong>EAST</strong>
+                                <span>East approach</span>
+                            </div>
+
+                            <div
+                                id="queueEast"
+                                class="queue-count"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+
+                        <div class="queue-row">
+
+                            <div>
+                                <strong>WEST</strong>
+                                <span>West approach</span>
+                            </div>
+
+                            <div
+                                id="queueWest"
+                                class="queue-count"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="queue-total">
+
+                        <span>
+                            Total waiting
+                        </span>
+
+                        <strong id="queueTotal">
+                            0
+                        </strong>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+
+            <!-- LOWER PANELS -->
+
+            <div class="lower-grid">
+
+                <section class="panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <span class="panel-kicker">
+                                PRIORITY
+                            </span>
+
+                            <h2>
+                                Active Emergencies
+                            </h2>
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="emergencyList"
+                        class="empty-state"
+                    >
+                        No active emergency vehicles.
+                    </div>
+
+                </section>
+
+
+                <section class="panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <span class="panel-kicker">
+                                CONTROLLER
+                            </span>
+
+                            <h2>
+                                Pending Commands
+                            </h2>
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="pendingCommandList"
+                        class="empty-state"
+                    >
+                        No pending controller commands.
+                    </div>
+
+                </section>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             MANUAL CONTROL
+        ================================================== -->
+
+        <section
+            id="controlSection"
+            class="dashboard-section"
+        >
+
+            <div class="section-heading">
+
+                <span class="panel-kicker">
+                    ADMINISTRATIVE CONTROL
+                </span>
+
+                <h2>
+                    Manual Signal Control
+                </h2>
+
+                <p>
+                    Manual requests use the same safe transition
+                    state machine as automatic traffic control.
+                    A direction is never forced immediately to green.
+                </p>
+
+            </div>
+
+
+            <div class="manual-layout">
+
+                <section class="panel">
+
+                    <div class="manual-status">
+
+                        <span class="small-label">
+                            Current mode
+                        </span>
+
+                        <strong id="manualCurrentMode">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div class="manual-direction-grid">
+
+                        <button
+                            type="button"
+                            class="direction-button"
+                            data-manual-direction="NORTH"
+                        >
+                            ↑
+                            <span>North Green</span>
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="direction-button"
+                            data-manual-direction="SOUTH"
+                        >
+                            ↓
+                            <span>South Green</span>
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="direction-button"
+                            data-manual-direction="EAST"
+                        >
+                            →
+                            <span>East Green</span>
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="direction-button"
+                            data-manual-direction="WEST"
+                        >
+                            ←
+                            <span>West Green</span>
+                        </button>
+
+                    </div>
+
+
+                    <button
+                        id="returnAutomaticButton"
+                        type="button"
+                        class="button danger full-width"
+                    >
+                        Return to Automatic Control
+                    </button>
+
+                </section>
+
+
+                <section class="panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <span class="panel-kicker">
+                                ACTIVE OVERRIDE
+                            </span>
+
+                            <h2>
+                                Manual State
+                            </h2>
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="manualOverrideDetail"
+                        class="empty-state"
+                    >
+                        No active manual override.
+                    </div>
+
+                </section>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             SENSOR SIMULATOR
+        ================================================== -->
+
+        <section
+            id="eventsSection"
+            class="dashboard-section"
+        >
+
+            <div class="section-heading">
+
+                <span class="panel-kicker">
+                    INPUT SIMULATOR
+                </span>
+
+                <h2>
+                    Sensor Event Simulator
+                </h2>
+
+                <p>
+                    Submit vehicle arrival and clearance events
+                    to the selected junction.
+                </p>
+
+            </div>
+
+
+            <section class="panel form-panel">
+
+                <form id="sensorForm">
+
+                    <div class="form-grid">
+
+                        <label>
+                            Vehicle ID
+
+                            <input
+                                id="vehicleId"
+                                type="text"
+                                value="VH-501"
+                                required
+                            >
+                        </label>
+
+
+                        <label>
+                            Direction
+
+                            <select id="sensorDirection">
+                                <option value="NORTH">
+                                    NORTH
+                                </option>
+
+                                <option value="SOUTH">
+                                    SOUTH
+                                </option>
+
+                                <option value="EAST">
+                                    EAST
+                                </option>
+
+                                <option value="WEST">
+                                    WEST
+                                </option>
+                            </select>
+                        </label>
+
+
+                        <label>
+                            Vehicle Type
+
+                            <select id="vehicleType">
+
+                                <option value="TRUCK">
+                                    TRUCK
+                                </option>
+
+                                <option value="FORKLIFT">
+                                    FORKLIFT
+                                </option>
+
+                                <option value="EMPLOYEE_VEHICLE">
+                                    EMPLOYEE VEHICLE
+                                </option>
+
+                                <option value="EMERGENCY">
+                                    EMERGENCY
+                                </option>
+
+                            </select>
+                        </label>
+
+
+                        <label>
+                            Event Type
+
+                            <select id="sensorEventType">
+
+                                <option value="VEHICLE_ARRIVED">
+                                    VEHICLE ARRIVED
+                                </option>
+
+                                <option value="VEHICLE_CLEARED">
+                                    VEHICLE CLEARED
+                                </option>
+
+                            </select>
+                        </label>
+
+
+                        <label>
+                            Sequence Number
+
+                            <input
+                                id="sequenceNumber"
+                                type="number"
+                                value="1"
+                                min="1"
+                                required
+                            >
+                        </label>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="button primary"
+                    >
+                        Send Sensor Event
+                    </button>
+
+                </form>
+
+            </section>
+
+        </section>
+
+
+        <!-- =================================================
+             AUDIT HISTORY
+        ================================================== -->
+
+        <section
+            id="historySection"
+            class="dashboard-section"
+        >
+
+            <div class="section-heading history-heading">
+
+                <div>
+                    <span class="panel-kicker">
+                        AUDIT TRAIL
+                    </span>
+
+                    <h2>
+                        Junction History
+                    </h2>
+                </div>
+
+
+                <div class="history-controls">
+
+                    <input
+                        id="historyFilter"
+                        type="text"
+                        placeholder="Exact event type..."
+                    >
+
+                    <button
+                        id="historyRefreshButton"
+                        type="button"
+                        class="button secondary"
+                    >
+                        Refresh History
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <section class="panel">
+
+                <div class="history-table-wrapper">
+
+                    <table class="history-table">
+
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Event</th>
+                                <th>Direction</th>
+                                <th>Vehicle</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+
+
+                        <tbody id="historyBody">
+
+                            <tr>
+                                <td colspan="5">
+                                    Loading history...
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- =========================================================
+     CREATE JUNCTION MODAL
+========================================================= -->
+
+<div
+    id="junctionModal"
+    class="modal hidden"
+>
+
+    <div class="modal-backdrop"></div>
+
+
+    <div class="modal-card">
+
+        <div class="modal-header">
+
+            <div>
+                <span class="panel-kicker">
+                    CONFIGURATION
+                </span>
+
+                <h2>
+                    Create Junction
+                </h2>
+            </div>
+
+
+            <button
+                id="closeModalButton"
+                class="icon-button"
+                type="button"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <form id="junctionForm">
+
+            <label>
+                Junction ID
+
+                <input
+                    id="newJunctionId"
+                    type="text"
+                    placeholder="C"
+                    maxlength="50"
+                    required
+                >
+            </label>
+
+
+            <label>
+                Junction Name
+
+                <input
+                    id="newJunctionName"
+                    type="text"
+                    placeholder="Factory Gate C"
+                    maxlength="100"
+                >
+            </label>
+
+
+            <div class="form-grid">
+
+                <label>
+                    Normal Green Seconds
+
+                    <input
+                        id="newGreenSeconds"
+                        type="number"
+                        value="30"
+                        min="1"
+                        required
+                    >
+                </label>
+
+
+                <label>
+                    Yellow Seconds
+
+                    <input
+                        id="newYellowSeconds"
+                        type="number"
+                        value="5"
+                        min="1"
+                        required
+                    >
+                </label>
+
+
+                <label>
+                    All Red Seconds
+
+                    <input
+                        id="newAllRedSeconds"
+                        type="number"
+                        value="2"
+                        min="1"
+                        required
+                    >
+                </label>
+
+
+                <label>
+                    Maximum Wait Seconds
+
+                    <input
+                        id="newMaxWaitSeconds"
+                        type="number"
+                        value="120"
+                        min="1"
+                        required
+                    >
+                </label>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="button primary full-width"
+            >
+                Create Junction
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script src="{% static 'traffic/dashboard.js' %}"></script>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+{
+  "info": {
+    "name": "Factory Traffic Management System",
+    "_postman_id": "f2f9a98b-4ce1-4b2c-a214-factory-traffic-management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "junctionId",
+      "value": "A"
+    },
+    {
+      "key": "commandId",
+      "value": "replace-with-real-command-id"
+    },
+    {
+      "key": "vehicleId",
+      "value": "TRUCK-POSTMAN-001"
+    }
+  ],
+  "item": [
+    {
+      "name": "Junctions",
+      "item": [
+        {
+          "name": "List Junctions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/junctions/"
+          }
+        },
+        {
+          "name": "Create Junction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"junction_id\": \"POSTMAN\",\n  \"name\": \"Postman Junction\",\n  \"normal_green_seconds\": 30,\n  \"yellow_seconds\": 5,\n  \"all_red_seconds\": 2,\n  \"max_wait_seconds\": 120\n}"
+            },
+            "url": "{{baseUrl}}/api/junctions/"
+          }
+        },
+        {
+          "name": "Get Junction",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/junctions/{{junctionId}}/"
+          }
+        },
+        {
+          "name": "Get Junction Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/junctions/{{junctionId}}/status/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sensor Events",
+      "item": [
+        {
+          "name": "Vehicle Arrived",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event_id\": \"evt-postman-arrive-001\",\n  \"junction_id\": \"{{junctionId}}\",\n  \"direction\": \"NORTH\",\n  \"event_type\": \"VEHICLE_ARRIVED\",\n  \"vehicle_id\": \"{{vehicleId}}\",\n  \"vehicle_type\": \"TRUCK\",\n  \"sequence_no\": 1,\n  \"timestamp\": \"2026-10-08T10:15:20Z\"\n}"
+            },
+            "url": "{{baseUrl}}/api/sensor-events/"
+          }
+        },
+        {
+          "name": "Duplicate Arrived (Idempotency)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event_id\": \"evt-postman-arrive-001\",\n  \"junction_id\": \"{{junctionId}}\",\n  \"direction\": \"NORTH\",\n  \"event_type\": \"VEHICLE_ARRIVED\",\n  \"vehicle_id\": \"{{vehicleId}}\",\n  \"vehicle_type\": \"TRUCK\",\n  \"sequence_no\": 1,\n  \"timestamp\": \"2026-10-08T10:15:20Z\"\n}"
+            },
+            "url": "{{baseUrl}}/api/sensor-events/"
+          }
+        },
+        {
+          "name": "Vehicle Cleared",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event_id\": \"evt-postman-clear-001\",\n  \"junction_id\": \"{{junctionId}}\",\n  \"direction\": \"NORTH\",\n  \"event_type\": \"VEHICLE_CLEARED\",\n  \"vehicle_id\": \"{{vehicleId}}\",\n  \"vehicle_type\": \"TRUCK\",\n  \"sequence_no\": 2,\n  \"timestamp\": \"2026-10-08T10:16:20Z\"\n}"
+            },
+            "url": "{{baseUrl}}/api/sensor-events/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Manual Control",
+      "item": [
+        {
+          "name": "Manual North Green",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"command\": \"MANUAL_GREEN_REQUEST\",\n  \"direction\": \"NORTH\"\n}"
+            },
+            "url": "{{baseUrl}}/api/junctions/{{junctionId}}/commands/"
+          }
+        },
+        {
+          "name": "Return To Automatic",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"command\": \"RETURN_TO_AUTOMATIC\"\n}"
+            },
+            "url": "{{baseUrl}}/api/junctions/{{junctionId}}/commands/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Controller Events",
+      "item": [
+        {
+          "name": "ACK Controller Command",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"controller_event_id\": \"ctrl-postman-ack-001\",\n  \"command_id\": \"{{commandId}}\",\n  \"junction_id\": \"{{junctionId}}\",\n  \"status\": \"ACK\",\n  \"actual_state\": \"GREEN\",\n  \"timestamp\": \"2026-10-08T10:31:00Z\"\n}"
+            },
+            "url": "{{baseUrl}}/api/controller-events/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "item": [
+        {
+          "name": "Get History",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/junctions/{{junctionId}}/history/?limit=50"
+          }
+        },
+        {
+          "name": "Filter JUNCTION_CREATED",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/junctions/{{junctionId}}/history/?limit=50&event_type=JUNCTION_CREATED"
+          }
+        }
+      ]
+    }
+  ]
+}
